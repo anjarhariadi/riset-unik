@@ -7,7 +7,7 @@ from models.schemas import PaperResult
 
 model_dir = "onnx_model"
 tokenizer = AutoTokenizer.from_pretrained(model_dir, local_files_only=True)
-session = InferenceSession(f"{model_dir}/model.onnx")
+session = InferenceSession(f"{model_dir}/onnx/model_O3.onnx")
 
 def encode(texts):
     inputs = tokenizer(texts, padding=True, truncation=True, return_tensors="np")
@@ -33,8 +33,10 @@ def analyze_similarity(user_topic, titles_with_links):
         if not titles:
             return []
 
-        topic_embedding = encode([user_topic])
-        title_embeddings = encode(titles)
+        all_texts = [user_topic] + titles
+        all_embeddings = encode(all_texts)
+        topic_embedding = all_embeddings[0:1]
+        title_embeddings = all_embeddings[1:]
 
         sims = cosine_similarity(topic_embedding, title_embeddings)
         scores = np.array(sims).tolist()

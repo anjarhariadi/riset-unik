@@ -1,15 +1,18 @@
-from transformers import AutoTokenizer, AutoModel
-from optimum.onnxruntime import ORTModelForFeatureExtraction
-from optimum.exporters.onnx import export
+from sentence_transformers import SentenceTransformer, export_optimized_onnx_model
 from pathlib import Path
 
 model_name = "sentence-transformers/paraphrase-MiniLM-L6-v2"
 onnx_dir = Path("onnx_model")
-onnx_dir.mkdir(exist_ok=True)
 
-print("Exporting model to ONNX...")
-ort_model = ORTModelForFeatureExtraction.from_pretrained(model_name, export=True)
-ort_model.save_pretrained(onnx_dir)
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-tokenizer.save_pretrained(onnx_dir)
+print("Loading model with ONNX backend...")
+model = SentenceTransformer(model_name, backend="onnx")
+model.save_pretrained(onnx_dir)
 print("Export complete. Files saved in ./onnx_model")
+
+print("Applying O3 graph optimization...")
+export_optimized_onnx_model(
+    model,
+    optimization_config="O3",
+    model_name_or_path=str(onnx_dir),
+)
+print("Optimization complete. Optimized model saved in ./onnx_model")
