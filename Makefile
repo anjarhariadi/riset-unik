@@ -1,20 +1,43 @@
-# image naming
-FRONTEND_IMAGE = alphaleonis/risetunik-web
-BACKEND_IMAGE  = alphaleonis/risetunik-server
+ENGINE ?= podman
+REGISTRY ?= ghcr.io/anjarhariadi
+TAG ?= latest
 
-# Tag default
-TAG = latest
+# image naming
+FRONTEND_IMAGE = $(REGISTRY)/risetunik-web:$(TAG)
+BACKEND_IMAGE  = alphaleonis/risetunik-server:$(TAG)
+
+clean-image:
+	$(ENGINE) rmi $(BACKEND_IMAGE) $(FRONTEND_IMAGE) --force
 
 # Build image frontend
 build-frontend:
-	docker build -t $(FRONTEND_IMAGE):$(TAG) ./web
+	$(MACHINE) rmi $(FRONTEND_IMAGE) --force 
+	$(MACHINE) build -t $(FRONTEND_IMAGE) ./web
+
+push-frontend:
+	$(MACHINE) push $(FRONTEND_IMAGE)
+
+build-and-push-frontend: build-frontend push-frontend
 
 # Build image backend
 build-backend:
-	docker build -t $(BACKEND_IMAGE):$(TAG) ./server
+	$(MACHINE) rmi $(BACKEND_IMAGE) --force
+	$(MACHINE) build -t $(BACKEND_IMAGE):$(TAG) ./server
+
+push-backend:
+	$(MACHINE) push $(BACKEND_IMAGE):$(TAG)
+
+build-and-push-backend: build-backend push-backend
 
 # Build semua image sekaligus
 build-all: build-frontend build-backend
 
-# Tandai semua target ini sebagai phony
-.PHONY: build-frontend build-backend build-all
+push-all: push-frontend push-backend
+
+# Build and push semua image sekaligus
+build-and-push-all: build-frontend build-backend push-frontend push-backend
+
+.PHONY: build-frontend build-backend build-all \
+	   push-frontend push-backend push-all \
+	   build-and-push-frontend build-and-push-backend build-and-push-all \
+	   clean-image
