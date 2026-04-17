@@ -4,28 +4,28 @@ TAG ?= latest
 
 # image naming
 FRONTEND_IMAGE = $(REGISTRY)/risetunik-web:$(TAG)
-BACKEND_IMAGE  = alphaleonis/risetunik-server:$(TAG)
+BACKEND_IMAGE  = $(REGISTRY)/risetunik-server:$(TAG)
 
 clean-image:
 	$(ENGINE) rmi $(BACKEND_IMAGE) $(FRONTEND_IMAGE) --force
 
 # Build image frontend
 build-frontend:
-	$(MACHINE) rmi $(FRONTEND_IMAGE) --force 
-	$(MACHINE) build -t $(FRONTEND_IMAGE) ./web
+	$(ENGINE) rmi $(FRONTEND_IMAGE) --force 
+	$(ENGINE) build -t $(FRONTEND_IMAGE) ./web
 
 push-frontend:
-	$(MACHINE) push $(FRONTEND_IMAGE)
+	$(ENGINE) push $(FRONTEND_IMAGE)
 
 build-and-push-frontend: build-frontend push-frontend
 
 # Build image backend
 build-backend:
-	$(MACHINE) rmi $(BACKEND_IMAGE) --force
-	$(MACHINE) build -t $(BACKEND_IMAGE):$(TAG) ./server
+	$(ENGINE) rmi $(BACKEND_IMAGE) --force
+	$(ENGINE) build -t $(BACKEND_IMAGE) ./server
 
 push-backend:
-	$(MACHINE) push $(BACKEND_IMAGE):$(TAG)
+	$(ENGINE) push $(BACKEND_IMAGE)
 
 build-and-push-backend: build-backend push-backend
 
