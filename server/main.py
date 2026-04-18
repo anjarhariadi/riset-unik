@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from models.schemas import AnalyzeResponse, AnalyzeRequest
 from services.doaj import search_doaj
+from services.openalex import search_openalex
 from services.semantic_scholar import search_s2
 from services.similiarity import analyze_similarity
 from services.topic_generator import generate_topic
@@ -34,7 +35,7 @@ async def root(request: Request):
     return {"message": "Hello World"}
 
 @app.post("/analyze-topic", response_model=AnalyzeResponse)
-@limiter.limit("5/minute")
+@limiter.limit("20/minute")
 async def analyze_topic(data: AnalyzeRequest, request: Request):
     topic = data.topic
     is_valid, result = validate_topic(topic)
@@ -45,11 +46,11 @@ async def analyze_topic(data: AnalyzeRequest, request: Request):
         raise HTTPException(status_code=400, detail="Topik tidak boleh kosong.")
 
     # Use asyncio.gather to send requests concurrently
-    doaj_results, s2_results = await asyncio.gather(
-        search_doaj(topic), search_s2(topic, 40)
+    doaj_results, openalex_results, s2_results = await asyncio.gather(
+        search_doaj(topic), search_openalex(topic, 40), search_s2(topic, 40)
     )
 
-    results = doaj_results + s2_results
+    results = doaj_results + openalex_results + s2_results
 
     # Flatten all paper title
     titles = [{"title": item["title"], "link": item["link"]} for item in results if item]
@@ -60,7 +61,7 @@ async def analyze_topic(data: AnalyzeRequest, request: Request):
     return AnalyzeResponse(average_similarity=average_similarity, results=result)
 
 @app.post("/analyze-yapping", response_model=AnalyzeResponse)
-@limiter.limit("5/minute")
+@limiter.limit("20/minute")
 async def analyze_topic(data: AnalyzeRequest, request: Request):
     topic_desc = data.topic.strip()
     is_valid, result = validate_topic_yapping(topic_desc)
@@ -73,10 +74,10 @@ async def analyze_topic(data: AnalyzeRequest, request: Request):
         raise HTTPException(status_code=500, detail="Terjadi kesalahan pada server.")
 
     async def fetch_results(topic):
-        doaj_results, s2_results = await asyncio.gather(
-            search_doaj(topic), search_s2(topic)
+        doaj_results, openalex_results, s2_results = await asyncio.gather(
+            search_doaj(topic), search_openalex(topic), search_s2(topic)
         )
-        return doaj_results + s2_results
+        return doaj_results + openalex_results + s2_results
 
     results_id, results_en = await asyncio.gather(
         fetch_results(topics.topic_id),
