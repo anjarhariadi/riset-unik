@@ -1,23 +1,18 @@
 services:
   web:
-    build:
-      context: ./web
-      dockerfile: Dockerfile
+    image: ghcr.io/anjarhariadi/risetunik-web:latest
     container_name: risetunik-web
     ports:
-      - "80:80"
-      - "443:443"
+      - "3030:80"
     restart: always
     depends_on:
       - server
 
   server:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
+    image: ghcr.io/anjarhariadi/risetunik-server:latest
     container_name: risetunik-server
     ports:
-      - "8000:8000"
+      - "3031:8000"
     env_file:
       - ./server/.env
     restart: always
