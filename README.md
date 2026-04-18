@@ -26,12 +26,12 @@
 
 ## 🛠️ Teknologi yang Digunakan
 
-| Komponen    | Teknologi                                                         |
-| ----------- | ----------------------------------------------------------------- |
-| Frontend    | [Next.js](https://nextjs.org/) + [ShadCN](https://ui.shadcn.com/) |
-| Backend     | [FastAPI](https://fastapi.tiangolo.com/)                          |
-| ML Model    | [sentence-transformers](https://www.sbert.net/)                   |
-| API Sources | DOAJ, Semantic Scholar                                            |
+| Komponen           | Teknologi                                                         |
+| ------------------ | ----------------------------------------------------------------- |
+| Frontend           | [Next.js](https://nextjs.org/) + [ShadCN](https://ui.shadcn.com/) |
+| Backend            | [FastAPI](https://fastapi.tiangolo.com/)                          |
+| ML Model           | Word2Vec                                                          |
+| Papers API Sources | DOAJ, Semantic Scholar, OpenAlex                                  |
 
 ---
 
