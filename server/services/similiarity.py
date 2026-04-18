@@ -1,25 +1,14 @@
+from model2vec import StaticModel
 from fastapi import HTTPException
-from transformers import AutoTokenizer
-from onnxruntime import InferenceSession
 import numpy as np
 
 from models.schemas import PaperResult
 
-model_dir = "onnx_model"
-tokenizer = AutoTokenizer.from_pretrained(model_dir, local_files_only=True)
-session = InferenceSession(f"{model_dir}/onnx/model_O3.onnx")
+model = StaticModel.from_pretrained("minishlab/potion-multilingual-128M")
 
 def encode(texts):
-    inputs = tokenizer(texts, padding=True, truncation=True, return_tensors="np")
-    inputs = {k: np.array(v, dtype=np.int64) for k, v in inputs.items()}
-    outputs = session.run(None, dict(inputs))
-    embeddings = outputs[0]
-
-    mask = np.expand_dims(inputs["attention_mask"], -1)
-    mask_sum = np.clip(mask.sum(1), a_min=1e-9, a_max=None)
-    mean_emb = (embeddings * mask).sum(1) / mask_sum
-    normed = mean_emb / np.linalg.norm(mean_emb, axis=1, keepdims=True)
-    return normed
+    embeddings = model.encode(texts)
+    return embeddings
 
 def cosine_similarity(a, b):
     return np.dot(a, b.T).squeeze()
@@ -39,7 +28,7 @@ def analyze_similarity(user_topic, titles_with_links):
         title_embeddings = all_embeddings[1:]
 
         sims = cosine_similarity(topic_embedding, title_embeddings)
-        scores = np.array(sims).tolist()
+        scores = np.atleast_1d(np.array(sims)).tolist()
 
         results = [
             PaperResult(title=item["title"], link=item["link"], similarity=float(sim))
